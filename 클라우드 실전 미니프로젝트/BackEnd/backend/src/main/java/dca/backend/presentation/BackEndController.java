@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequestMapping("/backend/api")
-public class Controller {
+public class BackEndController {
 
     private final BackEndService backEndService;
 
