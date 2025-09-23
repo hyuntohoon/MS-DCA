@@ -12,14 +12,14 @@ Docker / Kubernetes 환경에서 **K6 부하 테스트**를 실행하고, 결과
 
 ---
 
-### 🛠️ 기술 스택
-- **Frontend**: Vue 3, Vite, Chart.js, Axios  
-- **Backend**: Spring Boot, MongoDB  
-- **Infra**: Docker, Kubernetes, K6  
-
----
-
 ### ✅ 성능 지표 기준
 - ❌ 위험 : 에러율 ≥ 10% 또는 응답시간 ≥ 5초  
 - ⚠️ 주의 : 에러율 ≥ 5% 또는 응답시간 ≥ 2초  
-- ✅ 정상 : 그 외의 경우  
+- ✅ 정상 : 그 외의 경우
+
+---
+
+### 🛠️ 기술 스택
+- **Frontend**: Vue 3, Vite, Chart.js, Axios  
+- **Backend**: Spring Boot, MongoDB  
+- **Infra**: Docker, Kubernetes, K6, VMware 
