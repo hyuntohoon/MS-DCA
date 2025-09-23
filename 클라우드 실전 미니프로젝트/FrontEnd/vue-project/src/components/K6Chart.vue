@@ -290,8 +290,8 @@ export default defineComponent({
       const errorRate = item.errorRate * 100
       const resp = item.avgResponseTime
 
-      if (errorRate >= 10 || resp >= 5) return '❌' // 빨강
-      if (errorRate >= 5 || resp >= 2) return '⚠️' // 노랑
+      if (errorRate >= 5) return '❌' // 빨강
+      if (resp >= 5) return '⚠️' // 노랑
       return '✅' // 초록
     }
 
