@@ -1,13 +1,10 @@
-FROM openjdk:17-jdk-slim AS builder
+FROM --platform=linux/amd64 openjdk:17-jdk-slim AS builder
 WORKDIR /app
-
 COPY . .
-RUN ./gradlew clean build -x test
+RUN ./gradlew bootJar --no-daemon
 
-FROM openjdk:17-jdk-slim
+# 2. 런타임 단계
+FROM --platform=linux/amd64 openjdk:17-jdk-slim
 WORKDIR /app
-
 COPY --from=builder /app/build/libs/*.jar app.jar
-
-EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
