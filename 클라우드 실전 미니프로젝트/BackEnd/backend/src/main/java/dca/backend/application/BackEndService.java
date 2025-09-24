@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -58,7 +59,7 @@ public class BackEndService {
 
     // 테스트용API
     @Transactional
-    public void play() {
+    public void play() throws InterruptedException {
         long sum = 0;
         Random random = new Random();
 
@@ -68,67 +69,63 @@ public class BackEndService {
                 sum += (i / j) + rand;
             }
         }
+        Thread.sleep(3000);
         System.out.println("Done: " + sum);
     }
 
-
-    // 부하테스트
+    // K6 테스트 및 결과 저장
     @Transactional
     public void runK6(String category) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
                     "k6", "run",
-                    "src/main/resources/load-test/test.js",   // js 경로
-                    "--out", "json=output.json"
+                    "--env", "CATEGORY=" + category,
+                    "src/main/resources/load-test/test.js"
             );
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            process.waitFor();
 
-            // 집계용 변수
-            long totalRequests = 0;
             long successCount = 0;
-            long errorCount = 0;
-            double totalDuration = 0;
+            double avgResponseTimeSec = 0;
+            double errorRate = 0;
 
-            // 파싱
-            ObjectMapper mapper = new ObjectMapper();
-            try (BufferedReader br = new BufferedReader(new FileReader("output.json"))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    JsonNode node = mapper.readTree(line);
-                    if ("Point".equals(node.get("type").asText())) {
-                        String metric = node.get("metric").asText();
-                        double value = node.get("data").get("value").asDouble();
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("K6-OUTPUT >> " + line);
 
-                        if ("http_reqs".equals(metric)) {
-                            totalRequests += (long) value;
-                        } else if ("http_req_duration".equals(metric)) {
-                            totalDuration += value; // 🔹 duration은 나중에 성공 기준으로만 평균 낼 거라 일단 누적
-                        } else if ("http_req_failed".equals(metric)) {
-                            errorCount += (long) value;
-                        }
+                // checks_succeeded...: 100.00% 30 out of 30
+                if (line.contains("checks_succeeded")) {
+                    String[] parts = line.trim().split("\\s+");
+                    successCount = Long.parseLong(parts[2]); // "30"
+                }
+
+                // http_req_failed................: 0.00%  0 out of 30
+                if (line.contains("http_req_failed")) {
+                    String percent = line.split(":")[1].trim().split("%")[0].trim();
+                    errorRate += Double.parseDouble(percent) / 100.0;
+                }
+
+                // http_req_duration..............: avg=12.92s ...
+                if (line.contains("http_req_duration") && line.contains("avg=")) {
+                    int idx = line.indexOf("avg=");
+                    if (idx != -1) {
+                        String value = line.substring(idx + 4, line.indexOf("s", idx)).trim();
+                        avgResponseTimeSec = Double.parseDouble(value);
                     }
                 }
             }
+            process.waitFor();
 
-            // 실제 처리된 요청 수 = 총 요청 수 - 에러 수
-            successCount = totalRequests - errorCount;
-
-            // 평균 응답 시간 (성공한 요청 기준)
-            double avgResponseTimeSec = successCount > 0 ? (totalDuration / successCount) / 1000.0 : 0;
-
-            // 에러율
-            double errorRate = totalRequests > 0 ? (double) errorCount / totalRequests : 0.0;
-
-            // 저장
+            // DB 저장
             K6Result result = K6Result.builder()
                     .category(category)
-                    .requestCount(successCount)          //
-                    .avgResponseTime(avgResponseTimeSec) //
-                    .errorRate(errorRate)
+                    .requestCount(successCount)
+                    .avgResponseTime(avgResponseTimeSec)
+                    .errorRate(errorRate) // ✅ 출력에서 바로 읽은 값
                     .executedAt(LocalDateTime.now().toString())
                     .build();
+
             backEndRepository.save(result);
 
         } catch (Exception e) {
@@ -136,6 +133,7 @@ public class BackEndService {
             throw new RestApiException(StatusCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
 
     // 최근 결과 가져오기
     @Transactional(readOnly = true)
