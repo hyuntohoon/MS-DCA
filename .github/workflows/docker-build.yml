@@ -20,6 +20,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./클라우드 실전 미니프로젝트/BackEnd/backend
-          file: ./클라우드 실전 미니프로젝트/BackEnd/backend/dockerfile
+          file: ./클라우드 실전 미니프로젝트/BackEnd/backend/Dockerfile
           push: true
+          platforms: linux/amd64
           tags: zlxldgus123/spring-app:latest
