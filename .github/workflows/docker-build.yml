@@ -22,5 +22,5 @@ jobs:
           context: ./클라우드 실전 미니프로젝트/BackEnd/backend
           file: ./클라우드 실전 미니프로젝트/BackEnd/backend/Dockerfile
           push: true
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           tags: zlxldgus123/spring-app:latest
