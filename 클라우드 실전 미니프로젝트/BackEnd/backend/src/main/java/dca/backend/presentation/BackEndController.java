@@ -23,7 +23,11 @@ public class BackEndController {
 
     // 성능부하테스트용 더미 API
     @PostMapping("/play")
+<<<<<<< HEAD
     public ResponseEntity<ResponseDto> play() throws InterruptedException {
+=======
+    public ResponseEntity<ResponseDto> play() {
+>>>>>>> upstream/main
         backEndService.play();
         return ResponseDto.response(StatusCode.SUCCESS, "연산 완료");
     }

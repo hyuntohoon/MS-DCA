@@ -2,8 +2,13 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
+<<<<<<< HEAD
     vus: 30, // 동시에 요청을 보낼 가상 사용자 수
     duration: "30s", // 테스트 지속 시간
+=======
+    vus: 100, // 동시에 요청을 보낼 가상 사용자 수
+    duration: "60s", // 테스트 지속 시간
+>>>>>>> upstream/main
 };
 
 // Spring 백엔드에서 ProcessBuilder 실행 시 --env CATEGORY=... 로 주입
