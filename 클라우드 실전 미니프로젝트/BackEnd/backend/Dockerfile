@@ -1,9 +1,15 @@
 FROM openjdk:17-jdk-slim AS builder
 WORKDIR /app
-COPY . .
 
-# gradlew 실행 권한만 주기
-RUN chmod +x ./gradlew
+# gradlew와 관련 파일 먼저 복사
+COPY gradlew .
+COPY gradle gradle
+
+# 실행권한 부여
+RUN chmod +x gradlew
+
+# 나머지 소스 복사
+COPY . .
 
 RUN ./gradlew bootJar --no-daemon
 
